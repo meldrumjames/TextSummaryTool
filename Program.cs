@@ -22,9 +22,11 @@ namespace TextSummaryTool
             string fillerInput = Console.ReadLine();
             textProcessor.SetFiller(fillerInput);
 
-            // textProcessor.ReadStopWords("stopWords.txt");
+            textProcessor.ReadStopWords("stopWords.txt");
+
             // Console.WriteLine(textProcessor.FindTotalWordCount());
 
+            textProcessor.ProcessText();
 
             // process file
 
@@ -38,40 +40,6 @@ namespace TextSummaryTool
 
     class TextProcessor
     {
-        /*
-         bool FilterEnabled = False;
-    List<string> sentences = new List<string>();
-      List<string> stopWords = new List<string>();
-      List<string> inputWords = new List<string>();
-      List<string> spaceWords = new List<string>();
-      List<string> extractedSentences = new List<string>();
-      List<string> fillerSentences = new List<string>();
-      List<string> output = new List<string>();
-
-     bool ReadStopWords(String filename)  
-     {
-          // read stopwords file
-    }
-
-    bool ReadText(String filename)
-    {
-         // open file and read text
-         // fill all Lists above as you did before in main
-    }
-
-    bool Process()
-    {
-          //process the file as you did in while loop
-          // and make output to console
-    }
-
-    void Print() 
-    {
-         // print text processor stats 
-     }
-        */
-
-
         bool fillerEnabled = false;
         public List<string> sentences = new List<string>();
         public List<string> stopWords = new List<string>();
@@ -108,6 +76,9 @@ namespace TextSummaryTool
             {
                 Console.WriteLine("An error has occured: " + e.Message);
             }
+
+            // removing empty entries from inputWords list
+            inputWords = inputWords.Where(a => !string.IsNullOrWhiteSpace(a)).ToList();
         }
 
         public void ReadStopWords(string fileName)
@@ -156,6 +127,42 @@ namespace TextSummaryTool
             }
 
             return totalWordCount;
+        }
+
+        public void ProcessText()
+        {
+            // removing stop words from input list
+            for (int i = 0; i < stopWords.Count; i++)
+            {
+                inputWords.RemoveAll(n => n.Equals(stopWords[i], StringComparison.OrdinalIgnoreCase));
+            }
+
+            // adding a space to the end of each word so that the results dont appear within other words
+            foreach (string s in inputWords)
+            {
+                string wordAddSpace;
+                wordAddSpace = s + " ";
+                spaceWords.Add(wordAddSpace);
+            }
+
+            // gets freq of words and adds them to ordered list
+            var freqList = spaceWords.GroupBy(i => i)
+                .OrderBy(g => g.Count())
+                .Select(g => g.Key)
+                .ToList();
+
+            // reversing the list because for some reason it was upside down
+            freqList.Reverse();
+
+            // setting variables for most and secondmost common words from this list
+            string mostCommon = freqList[0];
+            string secondMostCommon = freqList[1];
+            string thirdCommon = freqList[2];
+            string fourthCommon = freqList[3];
+
+            // creating lower/upper case versions of the words to also check for
+            string mostcommon = mostCommon.ToLower();
+            string MOSTCOMMON = mostCommon.ToUpper();
         }
     }
 }
