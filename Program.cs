@@ -31,10 +31,16 @@ namespace TextSummaryTool
 
             // user input
             Console.WriteLine("Please enter the name of the file to be used:");
-            var userInput = Console.ReadLine();
+            string userInput = Console.ReadLine();
             textProcessor.ReadInputFile(userInput);
 
-            textProcessor.ReadStopWords("stopWords.txt");
+            Console.WriteLine("Would you like to enable filler for the output?");
+            Console.WriteLine("This will add sentences with less relevant keywords until the summarisation factor is met.");
+            Console.WriteLine("Please press Y / N");
+            string fillerInput = Console.ReadLine();
+            textProcessor.SetFiller(fillerInput);
+
+            //textProcessor.ReadStopWords("stopWords.txt");
         }
     }
 
@@ -78,6 +84,10 @@ namespace TextSummaryTool
      }
         */
 
+
+        bool fillerEnabled = false;
+
+
         public void ReadInputFile(string fileName)
         {
             try
@@ -116,6 +126,20 @@ namespace TextSummaryTool
             catch (IOException e)
             {
                 Console.WriteLine("An error has occured: " + e.Message);
+            }
+        }
+
+        public void SetFiller(string fillerInput)
+        {
+            if ((fillerInput == "Y") || (fillerInput == "y"))
+            {
+                fillerEnabled = true;
+                //Console.WriteLine("filler enabled");
+            }
+            else if ((fillerInput == "N") || (fillerInput == "n"))
+            {
+                fillerEnabled = false;
+                //Console.WriteLine("filler disabled");
             }
         }
     }
