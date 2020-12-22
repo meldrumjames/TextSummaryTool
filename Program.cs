@@ -29,9 +29,12 @@ namespace TextSummaryTool
 
             TextProcessor textProcessor = new TextProcessor();
 
+            // user input
             Console.WriteLine("Please enter the name of the file to be used:");
-            var x = Console.ReadLine();
-            textProcessor.ReadInputFile(x);
+            var userInput = Console.ReadLine();
+            textProcessor.ReadInputFile(userInput);
+
+            textProcessor.ReadStopWords("stopWords.txt");
         }
     }
 
@@ -75,18 +78,40 @@ namespace TextSummaryTool
      }
         */
 
-        public void ReadInputFile(string filename)
+        public void ReadInputFile(string fileName)
         {
             try
             {
-                StreamReader inputReader = new StreamReader(filename);
+                StreamReader inputReader = new StreamReader(fileName);
                 string inputText = inputReader.ReadToEnd();
                 string[] inputLines = inputText.Split('.', '?', '!');
 
                 foreach (string s in inputLines)
                 {
+                    //Console.WriteLine(s);
+                }
+                inputReader.Close();
+            }
+            catch (IOException e)
+            {
+                Console.WriteLine("An error has occured: " + e.Message);
+            }
+        }
+
+        public void ReadStopWords(string fileName)
+        {
+            try
+            {
+                StreamReader readerOne = new StreamReader(fileName);
+                string stopText = readerOne.ReadToEnd();
+                string[] stopLines = stopText.Split('\n', '\r', '\t');
+
+                foreach(string s in stopLines)
+                {
                     Console.WriteLine(s);
                 }
+                
+                readerOne.Close();
             }
             catch (IOException e)
             {
