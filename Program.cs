@@ -9,24 +9,6 @@ namespace TextSummaryTool
     {
         static void Main(string[] args)
         {
-            /*
-            TextProcessor = new TextProcessor()
-            while (True)
-            {
-                // wait for user input
-
-                // process file
-
-
-                // write outputs
-
-
-                // do it again without restarting the program
-            }
-
-            // quit
-            */
-
             TextProcessor textProcessor = new TextProcessor();
 
             // user input
@@ -40,7 +22,17 @@ namespace TextSummaryTool
             string fillerInput = Console.ReadLine();
             textProcessor.SetFiller(fillerInput);
 
-            //textProcessor.ReadStopWords("stopWords.txt");
+            // textProcessor.ReadStopWords("stopWords.txt");
+            // Console.WriteLine(textProcessor.FindTotalWordCount());
+
+
+            // process file
+
+            // write outputs
+
+            // do it again without restarting
+
+            Console.ReadKey();
         }
     }
 
@@ -55,11 +47,6 @@ namespace TextSummaryTool
       List<string> extractedSentences = new List<string>();
       List<string> fillerSentences = new List<string>();
       List<string> output = new List<string>();
-
-     bool SetFilter(enableFilter)
-     {
-           this.FilterEnable = enableFilter;
-     }
 
      bool ReadStopWords(String filename)  
      {
@@ -86,7 +73,13 @@ namespace TextSummaryTool
 
 
         bool fillerEnabled = false;
-
+        public List<string> sentences = new List<string>();
+        public List<string> stopWords = new List<string>();
+        public List<string> inputWords = new List<string>();
+        List<string> spaceWords = new List<string>();
+        List<string> extractedSentences = new List<string>();
+        List<string> fillerSentences = new List<string>();
+        List<string> output = new List<string>();
 
         public void ReadInputFile(string fileName)
         {
@@ -94,11 +87,20 @@ namespace TextSummaryTool
             {
                 StreamReader inputReader = new StreamReader(fileName);
                 string inputText = inputReader.ReadToEnd();
+                string[] inputSplitWords = inputText.Split(' ', '\n', '\r', '\t');
                 string[] inputLines = inputText.Split('.', '?', '!');
 
-                foreach (string s in inputLines)
+                // splitting for sentences
+                for (int i = 0; i < inputLines.Length; i++)
                 {
-                    //Console.WriteLine(s);
+                    sentences.Add(inputLines[i]);
+                }
+
+                // splitting for all words
+                for (int i = 0; i < inputSplitWords.Length; i++)
+                {
+                    // trimming unnecessary chars
+                    inputWords.Add(inputSplitWords[i].Trim(new char[] { ' ', '"', ',', '.', ';', ':', '-', '_', '=' }));
                 }
                 inputReader.Close();
             }
@@ -112,16 +114,15 @@ namespace TextSummaryTool
         {
             try
             {
-                StreamReader readerOne = new StreamReader(fileName);
-                string stopText = readerOne.ReadToEnd();
+                StreamReader stopReader = new StreamReader(fileName);
+                string stopText = stopReader.ReadToEnd();
                 string[] stopLines = stopText.Split('\n', '\r', '\t');
 
-                foreach(string s in stopLines)
+                for (int i = 0; i < stopLines.Length; i++)
                 {
-                    Console.WriteLine(s);
+                    stopWords.Add(stopLines[i]);
                 }
-                
-                readerOne.Close();
+                stopReader.Close();
             }
             catch (IOException e)
             {
@@ -141,6 +142,20 @@ namespace TextSummaryTool
                 fillerEnabled = false;
                 //Console.WriteLine("filler disabled");
             }
+        }
+
+        public int FindTotalWordCount()
+        {
+            int sentenceWordCount = 0, totalWordCount = 0;
+
+            for (int i = 0; i < sentences.Count; i++)
+            {
+                // finding total word count
+                sentenceWordCount = sentences[i].Split(' ').Length;
+                totalWordCount += sentenceWordCount;
+            }
+
+            return totalWordCount;
         }
     }
 }
