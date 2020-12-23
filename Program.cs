@@ -12,32 +12,33 @@ namespace TextSummaryTool
             TextProcessor textProcessor = new TextProcessor();
             int sf = 0;
 
-            // user input
+            // getting input file
             Console.WriteLine("Please enter the name of the file to be used:");
             string userInput = Console.ReadLine();
             textProcessor.ReadInputFile(userInput);
 
+            // setting summarisation factor
             Console.WriteLine("Please enter a percent summarisation factor:");
             var isNumeric = int.TryParse(Console.ReadLine(), out sf);
 
+            // enabling filler content
             Console.WriteLine("Would you like to enable filler for the output?");
             Console.WriteLine("This will add sentences with less relevant keywords until the summarisation factor is met.");
             Console.WriteLine("Please press Y / N");
             string fillerInput = Console.ReadLine();
             textProcessor.SetFiller(fillerInput);
 
+            // getting and sorting stopWords file
             textProcessor.ReadStopWords("stopWords.txt");
 
-            // Console.WriteLine(textProcessor.FindTotalWordCount());
-
+            //process text
             textProcessor.ProcessText(textProcessor.FindTotalWordCount(), sf);
 
-            // process file
+            //output
+            textProcessor.Output();
 
-            // write outputs
-
-            // do it again without restarting
-
+            // exit application
+            Console.WriteLine("Please press any key to exit.");
             Console.ReadKey();
         }
     }
@@ -45,9 +46,9 @@ namespace TextSummaryTool
     class TextProcessor
     {
         bool fillerEnabled = false, processed = false;
-        public List<string> sentences = new List<string>();
-        public List<string> stopWords = new List<string>();
-        public List<string> inputWords = new List<string>();
+        List<string> sentences = new List<string>();
+        List<string> stopWords = new List<string>();
+        List<string> inputWords = new List<string>();
         List<string> spaceWords = new List<string>();
         List<string> extractedSentences = new List<string>();
         List<string> fillerSentences = new List<string>();
@@ -110,12 +111,10 @@ namespace TextSummaryTool
             if ((fillerInput == "Y") || (fillerInput == "y"))
             {
                 fillerEnabled = true;
-                //Console.WriteLine("filler enabled");
             }
             else if ((fillerInput == "N") || (fillerInput == "n"))
             {
                 fillerEnabled = false;
-                //Console.WriteLine("filler disabled");
             }
         }
 
@@ -133,7 +132,7 @@ namespace TextSummaryTool
             return totalWordCount;
         }
 
-        public void ProcessText(int totalWordCount, int sf)
+        public void ProcessText(double totalWordCount, int sf)
         {
             // removing stop words from input list
             for (int i = 0; i < stopWords.Count; i++)
@@ -230,7 +229,7 @@ namespace TextSummaryTool
 
             var extractedIndex = 0;
             var fillerIndex = 0;
-            var outputTotalWordCount = 0;
+            double outputTotalWordCount = 0;
             double actualSF = 0;
 
             while (processed == false)
@@ -259,24 +258,9 @@ namespace TextSummaryTool
                                         // display to screen
                                         Console.WriteLine();
                                         Console.WriteLine("The text has been processed.");
-                                        Console.WriteLine("The output has been saved into the Debug folder as output.txt");
-                                        Console.WriteLine("The initial sf was " + sf + ". While the final sf is " + actualSF);
+                                        Console.WriteLine("The initial sf was " + sf + " While the final sf is " + actualSF);
 
-                                        // writing to file
-                                        try
-                                        {
-                                            StreamWriter sw = new StreamWriter("output.txt");
-
-                                            for (int i = 0; i < output.Count; i++)
-                                            {
-                                                sw.WriteLine(output[i]);
-                                            }
-                                            sw.Close();
-                                        }
-                                        catch (IOException e)
-                                        {
-                                            Console.WriteLine("error has occured: " + e.Message);
-                                        }
+                                        processed = true;
                                         return;
                                     }
 
@@ -289,35 +273,20 @@ namespace TextSummaryTool
                                     {
                                         // remove the last sentence to reduce the word count
                                         output.RemoveAt(fillerIndex);
-                                        processed = true;
 
                                         actualSF = (outputTotalWordCount * (100 / totalWordCount));
                                         actualSF = Math.Round(actualSF, 2);
 
+                                        // display to screen
                                         Console.WriteLine();
                                         Console.WriteLine("The text has been processed.");
-                                        Console.WriteLine("The output has been saved into the Debug folder as output.txt");
-                                        Console.WriteLine("The initial sf was " + sf + ". While the final sf is " + actualSF);
+                                        Console.WriteLine("The initial sf was " + sf + " While the final sf is " + actualSF);
 
-                                        try
-                                        {
-                                            StreamWriter sw = new StreamWriter("output.txt");
-
-                                            for (int i = 0; i < output.Count; i++)
-                                            {
-                                                sw.WriteLine(output[i]);
-                                            }
-                                            sw.Close();
-                                        }
-                                        catch (IOException e)
-                                        {
-                                            Console.WriteLine("error has occured: " + e.Message);
-                                        }
+                                        processed = true;
                                         return;
                                     }
                                     else
                                     {
-                                        //Console.WriteLine(output[indexInt]);
                                         fillerIndex++;
                                     }
                                 }
@@ -330,24 +299,9 @@ namespace TextSummaryTool
                             // display to screen
                             Console.WriteLine();
                             Console.WriteLine("The text has been processed.");
-                            Console.WriteLine("The output has been saved into the Debug folder as output.txt");
-                            Console.WriteLine("The initial sf was " + sf + ". While the final sf is " + actualSF);
+                            Console.WriteLine("The initial sf was " + sf + " While the final sf is " + actualSF);
 
-                            // writing to file
-                            try
-                            {
-                                StreamWriter sw = new StreamWriter("output.txt");
-
-                                for (int i = 0; i < output.Count; i++)
-                                {
-                                    sw.WriteLine(output[i]);
-                                }
-                                sw.Close();
-                            }
-                            catch (IOException e)
-                            {
-                                Console.WriteLine("error has occured: " + e.Message);
-                            }
+                            processed = true;
                             return;
                         }
 
@@ -360,38 +314,45 @@ namespace TextSummaryTool
                         {
                             // remove the last sentence to reduce the word count
                             output.RemoveAt(extractedIndex);
-                            processed = true;
 
                             actualSF = (outputTotalWordCount * (100 / totalWordCount));
                             actualSF = Math.Round(actualSF, 2);
 
+                            // display to screen
                             Console.WriteLine();
                             Console.WriteLine("The text has been processed.");
-                            Console.WriteLine("The output has been saved into the Debug folder as output.txt");
-                            Console.WriteLine("The initial sf was " + sf + ". While the final sf is " + actualSF);
+                            Console.WriteLine("The initial sf was " + sf + " While the final sf is " + actualSF);
 
-                            try
-                            {
-                                StreamWriter sw = new StreamWriter("output.txt");
-
-                                for (int i = 0; i < output.Count; i++)
-                                {
-                                    sw.WriteLine(output[i]);
-                                }
-                                sw.Close();
-                            }
-                            catch (IOException e)
-                            {
-                                Console.WriteLine("error has occured: " + e.Message);
-                            }
+                            processed = true;
                             return;
                         }
                         else
                         {
-                            //Console.WriteLine(output[indexInt]);
                             extractedIndex++;
                         }
                     }
+                }
+            }
+        }
+
+        public void Output()
+        {
+            if (processed == true)
+            {
+                try
+                {
+                    StreamWriter sw = new StreamWriter("output.txt");
+
+                    for (int i = 0; i < output.Count; i++)
+                    {
+                        sw.WriteLine(output[i]);
+                    }
+                    Console.WriteLine("The output has been saved into the Debug folder as output.txt");
+                    sw.Close();
+                }
+                catch (IOException e)
+                {
+                    Console.WriteLine("error has occured: " + e.Message);
                 }
             }
         }
