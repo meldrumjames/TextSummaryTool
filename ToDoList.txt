@@ -1,0 +1,3 @@
+- update the readme
+
+- can return to program at a later date to add more features/improve as i learn more
