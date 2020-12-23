@@ -10,11 +10,15 @@ namespace TextSummaryTool
         static void Main(string[] args)
         {
             TextProcessor textProcessor = new TextProcessor();
+            int sf = 0;
 
             // user input
             Console.WriteLine("Please enter the name of the file to be used:");
             string userInput = Console.ReadLine();
             textProcessor.ReadInputFile(userInput);
+
+            Console.WriteLine("Please enter a percent summarisation factor:");
+            var isNumeric = int.TryParse(Console.ReadLine(), out sf);
 
             Console.WriteLine("Would you like to enable filler for the output?");
             Console.WriteLine("This will add sentences with less relevant keywords until the summarisation factor is met.");
@@ -26,7 +30,7 @@ namespace TextSummaryTool
 
             // Console.WriteLine(textProcessor.FindTotalWordCount());
 
-            textProcessor.ProcessText();
+            textProcessor.ProcessText(textProcessor.FindTotalWordCount(), sf);
 
             // process file
 
@@ -40,7 +44,7 @@ namespace TextSummaryTool
 
     class TextProcessor
     {
-        bool fillerEnabled = false;
+        bool fillerEnabled = false, processed = false;
         public List<string> sentences = new List<string>();
         public List<string> stopWords = new List<string>();
         public List<string> inputWords = new List<string>();
@@ -129,7 +133,7 @@ namespace TextSummaryTool
             return totalWordCount;
         }
 
-        public void ProcessText()
+        public void ProcessText(int totalWordCount, int sf)
         {
             // removing stop words from input list
             for (int i = 0; i < stopWords.Count; i++)
@@ -163,6 +167,233 @@ namespace TextSummaryTool
             // creating lower/upper case versions of the words to also check for
             string mostcommon = mostCommon.ToLower();
             string MOSTCOMMON = mostCommon.ToUpper();
+
+            // pulling sentences from document that contain the relevant keyWords
+            foreach (string s in sentences)
+            {
+                if ((s.Contains(mostCommon) && s.Contains(secondMostCommon) == true) || (s.Contains(mostcommon) == true) || (s.Contains(MOSTCOMMON) == true))
+                {
+                    // adding them to separate list 
+                    extractedSentences.Add(s);
+                }
+                else if (s.Contains(mostCommon) == true)
+                {
+                    extractedSentences.Add(s);
+                }
+                else if (s.Contains(secondMostCommon) == true)
+                {
+                    extractedSentences.Add(s);
+                }
+            }
+
+            // pulling extra keywords in case we need to fill out the output
+            foreach (string s in sentences)
+            {
+                if (s.Contains(thirdCommon) == true)
+                {
+                    fillerSentences.Add(s);
+                }
+                else if (s.Contains(fourthCommon) == true)
+                {
+                    fillerSentences.Add(s);
+                }
+            }
+
+            // if any sentences are in both list this will remove them from the filler list
+            for (int i = 0; i < extractedSentences.Count; i++)
+            {
+                fillerSentences.RemoveAll(n => n.Equals(extractedSentences[i], StringComparison.OrdinalIgnoreCase));
+            }
+
+            // adding full-stops to the end of the sentences for readability
+            for (int s = 0; s < extractedSentences.Count; s++)
+            {
+                extractedSentences[s] += @".";
+            }
+
+            for (int s = 0; s < fillerSentences.Count; s++)
+            {
+                fillerSentences[s] += @".";
+            }
+
+            // and to here
+            sentences[0] += @".";
+
+            // adding the first sentence of the document as it will give a good idea of what's to come
+            output.Add(sentences[0]);
+
+            // if the first sentence is also an 'extracted' sentence it can be deleted as otherwise it would be duplicated
+            if (sentences[0] == extractedSentences[0])
+            {
+                output.RemoveAt(0);
+            }
+
+            var extractedIndex = 0;
+            var fillerIndex = 0;
+            var outputTotalWordCount = 0;
+            double actualSF = 0;
+
+            while (processed == false)
+            {
+                while (extractedIndex <= extractedSentences.Count)
+                {
+                    // checking calculation
+                    if ((outputTotalWordCount * (100 / totalWordCount)) < sf)
+                    {
+                        // if all the sentences have been used up then can fill out with filler sentences. 
+                        if (extractedIndex == extractedSentences.Count)
+                        {
+
+                            while ((fillerIndex <= fillerSentences.Count) && (fillerEnabled == true))
+                            {
+                                // checking calculation
+                                if ((outputTotalWordCount * (100 / totalWordCount)) < sf)
+                                {
+                                    // if all the sentences have been used up then exit out 
+                                    if (fillerIndex == fillerSentences.Count)
+                                    {
+                                        // calculating what the final sf was
+                                        actualSF = (outputTotalWordCount * (100 / totalWordCount));
+                                        actualSF = Math.Round(actualSF, 2);
+
+                                        // display to screen
+                                        Console.WriteLine();
+                                        Console.WriteLine("The text has been processed.");
+                                        Console.WriteLine("The output has been saved into the Debug folder as output.txt");
+                                        Console.WriteLine("The initial sf was " + sf + ". While the final sf is " + actualSF);
+
+                                        // writing to file
+                                        try
+                                        {
+                                            StreamWriter sw = new StreamWriter("output.txt");
+
+                                            for (int i = 0; i < output.Count; i++)
+                                            {
+                                                sw.WriteLine(output[i]);
+                                            }
+                                            sw.Close();
+                                        }
+                                        catch (IOException e)
+                                        {
+                                            Console.WriteLine("error has occured: " + e.Message);
+                                        }
+                                        return;
+                                    }
+
+                                    // adding sentence and updating word count 
+                                    output.Add(fillerSentences[fillerIndex]);
+                                    outputTotalWordCount += output[fillerIndex].Split(' ').Length;
+
+                                    // if sf is exceeded then exit out
+                                    if ((outputTotalWordCount * (100 / totalWordCount)) >= sf)
+                                    {
+                                        // remove the last sentence to reduce the word count
+                                        output.RemoveAt(fillerIndex);
+                                        processed = true;
+
+                                        actualSF = (outputTotalWordCount * (100 / totalWordCount));
+                                        actualSF = Math.Round(actualSF, 2);
+
+                                        Console.WriteLine();
+                                        Console.WriteLine("The text has been processed.");
+                                        Console.WriteLine("The output has been saved into the Debug folder as output.txt");
+                                        Console.WriteLine("The initial sf was " + sf + ". While the final sf is " + actualSF);
+
+                                        try
+                                        {
+                                            StreamWriter sw = new StreamWriter("output.txt");
+
+                                            for (int i = 0; i < output.Count; i++)
+                                            {
+                                                sw.WriteLine(output[i]);
+                                            }
+                                            sw.Close();
+                                        }
+                                        catch (IOException e)
+                                        {
+                                            Console.WriteLine("error has occured: " + e.Message);
+                                        }
+                                        return;
+                                    }
+                                    else
+                                    {
+                                        //Console.WriteLine(output[indexInt]);
+                                        fillerIndex++;
+                                    }
+                                }
+                            }
+
+                            // calculating what the final sf was
+                            actualSF = (outputTotalWordCount * (100 / totalWordCount));
+                            actualSF = Math.Round(actualSF, 2);
+
+                            // display to screen
+                            Console.WriteLine();
+                            Console.WriteLine("The text has been processed.");
+                            Console.WriteLine("The output has been saved into the Debug folder as output.txt");
+                            Console.WriteLine("The initial sf was " + sf + ". While the final sf is " + actualSF);
+
+                            // writing to file
+                            try
+                            {
+                                StreamWriter sw = new StreamWriter("output.txt");
+
+                                for (int i = 0; i < output.Count; i++)
+                                {
+                                    sw.WriteLine(output[i]);
+                                }
+                                sw.Close();
+                            }
+                            catch (IOException e)
+                            {
+                                Console.WriteLine("error has occured: " + e.Message);
+                            }
+                            return;
+                        }
+
+                        // adding sentence and updating word count 
+                        output.Add(extractedSentences[extractedIndex]);
+                        outputTotalWordCount += output[extractedIndex].Split(' ').Length;
+
+                        // if sf is exceeded then exit out
+                        if ((outputTotalWordCount * (100 / totalWordCount)) >= sf)
+                        {
+                            // remove the last sentence to reduce the word count
+                            output.RemoveAt(extractedIndex);
+                            processed = true;
+
+                            actualSF = (outputTotalWordCount * (100 / totalWordCount));
+                            actualSF = Math.Round(actualSF, 2);
+
+                            Console.WriteLine();
+                            Console.WriteLine("The text has been processed.");
+                            Console.WriteLine("The output has been saved into the Debug folder as output.txt");
+                            Console.WriteLine("The initial sf was " + sf + ". While the final sf is " + actualSF);
+
+                            try
+                            {
+                                StreamWriter sw = new StreamWriter("output.txt");
+
+                                for (int i = 0; i < output.Count; i++)
+                                {
+                                    sw.WriteLine(output[i]);
+                                }
+                                sw.Close();
+                            }
+                            catch (IOException e)
+                            {
+                                Console.WriteLine("error has occured: " + e.Message);
+                            }
+                            return;
+                        }
+                        else
+                        {
+                            //Console.WriteLine(output[indexInt]);
+                            extractedIndex++;
+                        }
+                    }
+                }
+            }
         }
     }
 }
