@@ -13,7 +13,7 @@ namespace TextSummaryTool
             int sf = 0;
 
             // getting input file
-            Console.WriteLine("Please enter the name of the file to be used:");
+            Console.WriteLine("Please enter the file path of the file to be used:");
             string userInput = Console.ReadLine();
             textProcessor.ReadInputFile(userInput);
 
@@ -347,7 +347,7 @@ namespace TextSummaryTool
                     {
                         sw.WriteLine(output[i]);
                     }
-                    Console.WriteLine("The output has been saved into the Debug folder as output.txt");
+                    Console.WriteLine("The output has been saved into the same folder as output.txt");
                     sw.Close();
                 }
                 catch (IOException e)
